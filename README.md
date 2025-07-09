@@ -1,193 +1,221 @@
-# 🗣️ Multilingual Audio Transcription using Facebook MMS
+Here's a complete, professional `README.md` file tailored for your repository that includes **both the transcription** (`transcribe.py`) and **alignment** (`align.py`) functionalities. It presents each module clearly, documents all supported languages, and explains how users can run each script.
 
-This repository provides a Python script to perform **automatic transcription** of multilingual `.wav` audio files using the [Facebook MMS (Massively Multilingual Speech) model](https://huggingface.co/facebook/mms-1b-all). It supports chunked transcription, full-file transcription, and timestamped output.
+---
+
+```markdown
+# 🗣️ Multilingual Transcription & Sentence Alignment Toolkit
+
+This repository provides tools to:
+1. **Transcribe multilingual audio files** using [Meta AI's MMS model](https://huggingface.co/facebook/mms-1b-all), and
+2. **Align transcriptions** with translations using embedding-based sentence alignment (e.g., Sonar or LaBSE + SimAlign).
 
 ---
 
 ## 📌 Features
 
-- 🔤 Supports **36 Indian languages** (via MMS-compatible tags)
-- 🎧 Transcribes **long audio files** by splitting them into manageable chunks
-- 🕐 Optionally includes **timestamps** for each chunk
-- ⚡ Efficient batch processing over structured directories
-- 📄 Output saved as `.txt` or `.tsv` (with timestamps)
+- 🔊 Transcribe `.wav` audio files across **36 Indian languages**
+- 🧠 Leverage **Facebook's MMS (Massively Multilingual Speech)** model
+- ✂️ Chunked long-audio handling with silence-skipping
+- 🌐 Language-specific tokenizers and adapter loading
+- 🌍 Align transcripts with translations using **SimAlign** and **Sonar/LabSE**
+- 📝 Output sentence-aligned `.csv` files for downstream NLP tasks
 
 ---
 
-## 📁 Project Structure
+## 📂 Directory Structure
 
 ```
-.
-├── transcribe.py                # Main transcription script
-├── README.md                    # Documentation
-└── requirements.txt             # Dependencies (optional)
-```
+
+project-root/
+├── transcribe.py            # Transcribes .wav files to text
+├── align.py                 # Aligns transcribed text with translations
+├── requirements.txt
+├── README.md
+└── /data/
+├── Hindi/
+│   ├── MKB\_101/
+│   │   ├── MKB\_101.wav
+│   │   └── MKB\_101.txt
+├── English/
+│   ├── MKB\_101/
+│   │   └── MKB\_101.txt
+└── ...
+
+````
 
 ---
 
-## 🧰 Requirements
+## 🧱 Requirements
 
-- Python 3.8+
-- PyTorch (with CUDA support if available)
-- `transformers` (HuggingFace)
-- `torchaudio`
-- `tqdm`
-- `pandas`
-
-### Install dependencies
+Install required libraries:
 
 ```bash
 pip install -r requirements.txt
-```
+````
 
-> If you don't have a `requirements.txt`, use:
+### `requirements.txt` includes:
 
-```bash
-pip install torch torchaudio transformers tqdm pandas
+```text
+torch
+torchaudio
+transformers
+pandas
+tqdm
+scipy
+simalign
 ```
 
 ---
 
-## 🛠️ Usage
+## 1️⃣ Audio Transcription (`transcribe.py`)
 
-### 1. Prepare Your Directory Structure
+### ▶️ Description
 
-Your audio files must be organized by language and episode:
+Transcribes `.wav` audio files in various Indian languages using the **MMS model** and saves them as `.txt` files.
 
-```
-root_dir/
-├── Hindi/
-│   ├── MKB_120_March_2025/
-│   │   └── MKB_120_March_2025.wav
-│   └── ...
-├── Assamese/
-│   └── MKB_119_February_2025/
-│       └── MKB_119_February_2025.wav
-...
-```
-
-Each `.wav` file will be transcribed into a `.txt` file in the same folder.
-
-### 2. Run the Script
+### 🧾 Usage
 
 ```bash
-python transcribe.py --root_dir /path/to/root_dir
+python transcribe.py --root_dir /path/to/data
 ```
 
-The script will:
+* `--root_dir`: Root directory containing subfolders by language (e.g., `Hindi`, `Assamese`).
 
-- Skip already-transcribed languages (you can modify the filter list)
-- Automatically detect language code using `lang_map`
-- Process audio in chunks (default: 10 seconds)
-- Save output `.txt` files alongside the original `.wav`
+### ⚙️ Features
+
+* Uses HuggingFace `Wav2Vec2ForCTC` + `AutoProcessor`
+* Automatically maps each language to the appropriate tokenizer and adapter
+* Chunks long audio into 10-second segments
+* Skips low-quality audio chunks
 
 ---
 
-## ⚙️ Optional Transcription Modes
+## 2️⃣ Sentence Alignment (`align.py`)
 
-### Transcribe Audio in One Shot (for short files)
+### ▶️ Description
 
-```python
-transcribe_audio_at_once_large(
-    processor, model, language_code, logger,
-    audio_path, output_txt_path, sampling_rate=16000
-)
+Aligns transcriptions (e.g., in Hindi) with their English translations on a sentence level using embedding similarity.
+
+### 🔧 Options
+
+```bash
+python align.py \
+  --src_lang Hindi \
+  --tgt_lang English \
+  --root_dir /path/to/data \
+  --output_dir /path/to/output \
+  --embed_model sonar \
+  --aligner simalign
 ```
 
-### Transcribe with Timestamps
+### 📥 Required Inputs
 
-```python
-transcribe_audio_with_timestamps(
-    processor, model, language_code, logger,
-    audio_path, output_path, chunk_duration_sec=10
-)
+Each language should have `.txt` files for corresponding episodes, e.g.:
+
+```
+/Hindi/MKB_101/MKB_101.txt
+/English/MKB_101/MKB_101.txt
 ```
 
-Output format (TSV):
+### 📤 Output
 
-| start_time | end_time | transcript |
-|------------|----------|------------|
-| 0.00       | 10.00    | Hello...   |
+For each episode, the output CSV will contain:
+
+| src               | tgt                 | sim\_score |
+| ----------------- | ------------------- | ---------- |
+| \[Hindi sentence] | \[English sentence] | 0.87       |
 
 ---
 
 ## 🌐 Supported Languages
 
-Language codes used are adapted for compatibility with MMS tokenizers:
-
-| Language  | Code                |
-|-----------|---------------------|
-| Hindi     | `hin`               |
-| Urdu      | `urd-script_arabic` |
-| Bengali   | `ben`               |
-| Assamese  | `asm`               |
-| Tamil     | `tam`               |
-| Telugu    | `tel`               |
-| Kannada   | `kan`               |
-| Malayalam | `mal`               |
-| Gujarati  | `guj`               |
-| Marathi   | `mar`               |
-| Odia      | `ory`               |
-| Punjabi   | `pan`               |
-| Sanskrit  | `hin`               |
-| ...       | ...                 |
-
-See the `lang_map` dictionary in `transcribe.py` for the full mapping.
-
----
-
-## 🧪 Example Output
-
-```
-✅ Transcription saved to: /data/MKB_120_March_2025/MKB_120_March_2025.txt
-```
-
-Or with timestamps:
-
-```
-✅ Timestamped transcription saved to: /data/MKB_120_March_2025/MKB_120_March_2025_timestamps.tsv
-```
-
----
-
-## 🧩 Customization
-
-- 🔍 **Filter Languages**: Modify the `if language in [...]` block in `main()` to include or exclude specific languages.
-- 🧠 **Model Checkpoints**: The default model is:
-
-  ```python
-  model_id = "facebook/mms-1b-all"
-  ```
-
-  You can change it to any other MMS checkpoint supported by Hugging Face.
-- ⏱️ **Chunk Duration**: You can change the default chunk duration (10 seconds) in:
-
-  ```python
-  transcribe_audio(..., chunk_duration_sec=10)
-  ```
+| Language     | MMS Code            |
+| ------------ | ------------------- |
+| Assamese     | `asm`               |
+| Bengali      | `ben`               |
+| Bodo         | `asm`               |
+| Chattisgarhi | `hin`               |
+| Dogri        | `hin`               |
+| English      | `eng`               |
+| Garo         | `bod`               |
+| Galo         | `bod`               |
+| Gujarati     | `guj`               |
+| Hindi        | `hin`               |
+| Jaintia      | `bod`               |
+| Kannada      | `kan`               |
+| Kashmiri     | `urd-script_arabic` |
+| Khasi        | `bod`               |
+| Kokborok     | `ben`               |
+| Konkani      | `hin`               |
+| Ladakhi      | `bod`               |
+| Lepcha       | `bod`               |
+| Maithili     | `hin`               |
+| Malayalam    | `mal`               |
+| Manipuri     | `ben`               |
+| Marathi      | `mar`               |
+| Mizo         | `bod`               |
+| Nepali       | `hin`               |
+| Odia         | `ory`               |
+| Punjabi      | `pan`               |
+| Purgi        | `urd-script_arabic` |
+| Sanskrit     | `hin`               |
+| Santhali     | `ben`               |
+| Sargujia     | `hin`               |
+| Sikkimese    | `bod`               |
+| Sindhi       | `hin`               |
+| Tamil        | `tam`               |
+| Telugu       | `tel`               |
+| Urdu         | `urd-script_arabic` |
 
 ---
 
-## 📝 Notes
+## ✏️ Customization
 
-- Audio chunks shorter than ~4000 samples (≈0.25 sec) are skipped.
-- Use `transcribe_audio()` for long files to prevent memory overflow.
-- The language adapter must match the expected MMS tokenizer format (e.g., `urd-script_arabic`).
+* **Change chunk size** (default is 10s): Edit `chunk_duration_sec` in `transcribe_audio(...)`
+* **Filter languages**: Adjust the language list or `lang_map` in the script
+* **Choose alignment backend**: Use `--embed_model sonar` or `labse` in `align.py`
 
 ---
 
 ## 📎 License
 
-This project uses open-source tools and follows the licensing terms of:
+This project uses:
 
-- Facebook’s MMS model
-- Hugging Face Transformers
-- PyTorch ecosystem
+* [Meta MMS models](https://github.com/facebookresearch/fairseq/tree/main/examples/mms)
+* [HuggingFace Transformers](https://huggingface.co/facebook/mms-1b-all)
+* [SimAlign](https://github.com/cisnlp/SimAlign)
+
+Please refer to each library's license for usage terms.
 
 ---
 
-## 🤝 Acknowledgements
+## 🙏 Acknowledgements
 
-- [Meta AI – MMS Project](https://github.com/facebookresearch/fairseq/tree/main/examples/mms)
-- [Hugging Face Transformers](https://huggingface.co/facebook/mms-1b-all)
-- [TorchAudio](https://pytorch.org/audio/)
+* Meta AI for the MMS models
+* HuggingFace for providing model hosting and APIs
+* SimAlign for sentence alignment algorithms
+
+---
+
+## 📬 Contact & Contributions
+
+If you find a bug or want to contribute:
+
+* Open an issue or pull request
+* For questions, feel free to reach out via GitHub
+
+---
+
+```
+
+---
+
+### ✅ Next Steps
+
+Would you like me to:
+- Export this README and supporting files into a `.zip`?
+- Add examples of `.txt` input/output?
+- Help with pushing this to GitHub?
+
+Let me know how you'd like to proceed.
+```
