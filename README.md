@@ -64,7 +64,7 @@ Install all Python dependencies:
 ```bash
 pip install -r requirements.txt
 ```
-##📂 Input Directory Structure
+## 📂 Input Directory Structure
 Organize your audio files by language and session inside a root directory:
 ```text 
 root_dir/
@@ -78,14 +78,14 @@ root_dir/
 📝 Note: Subdirectories under each language can follow any naming convention, as long as they contain a .wav file.
 Each .wav file is processed in 10-second chunks, transcribed, and saved as .txt next to the audio.
 
-##💡 Notes
+## 💡 Notes
     1.Skips already transcribed languages if filtered in main().
     2.Auto-resamples non-16kHz audio.
     3.Very short chunks (< 4000 samples) are ignored to improve quality.
 2. Alignment with align.py
 This script aligns full audio to sentence-level timestamps using Facebook's MMS aligner.
 
-##📂 Input Structure
+## 📂 Input Structure
 Transcribed .txt and corresponding .wav files should be side by side:
 ```text
 root_dir/
@@ -103,7 +103,7 @@ root_dir/
 ```text
 python align.py --root_dir /path/to/root_dir
 ```
-##📎 License
+## 📎 License
 ```text
 This project builds on open-source tools and respects their respective licenses:
 Meta MMS — Licensed under CC-BY-NC 4.0
