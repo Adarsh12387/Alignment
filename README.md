@@ -103,6 +103,21 @@ root_dir/
 ```text
 python align.py --root_dir /path/to/root_dir
 ```
+```text
+python align_pipeline_gpu_parallel.py \         
+    --text_dir <text_dir> \
+    --output_dir <output_dir> \
+    --threshold 0.65 \
+    --min_window 1 \
+    --max_window 300 \
+    --step 1 \
+    --top_k 1 \
+    --max_usage 1 \
+    --use_simalign \
+    --run_mode parallel \
+    --n_gpus 1 \
+    --workers_per_gpu 3
+```
 ## 📎 License
 ```text
 This project builds on open-source tools and respects their respective licenses:
